@@ -15,11 +15,11 @@ public class Dao_login {
 	}
 	
 	public int checkUser(String id, String pw) {
-		System.out.println("계정 있는지 확인 시작");
+		System.out.println("Dao_login 시작");
 		
 		String sql = "SELECT num, pw FROM user WHERE id=?";
 		
-		try ( Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)){
+		try ( Connection conn = dataSource.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql) ){
 			stmt.setString(1, id);
 			ResultSet rs = stmt.executeQuery();
 			if(rs.next()) {
@@ -30,15 +30,18 @@ public class Dao_login {
 					return rs.getInt("num");
 				}else {
 					System.out.println("pw 틀림");
+					return -2;
 				}
 			}else {
 				System.out.println("id 없음");
+				return -1;
 			}
 		}catch(SQLException e) {
 			System.out.println("오류 발생");
 			e.printStackTrace();
 		}
 		
+		System.out.println("Dao_login 종료");
 		return 0;
 	}
 
