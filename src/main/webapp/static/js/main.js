@@ -1,8 +1,8 @@
 
-var currentTab = "tab_1";
+var currentTab = "div_tab_3";
 
 window.onload = function(){
-	document.getElementById("tab_1").style.display="block";
+	document.getElementById(currentTab).style.display="block";
 }
 
 
@@ -16,8 +16,3 @@ function openTab(tabNum){
 
 
 
-function sayHello() {
-	alert("Hello, World!");
-	console.log("aaa");
-}
-	
