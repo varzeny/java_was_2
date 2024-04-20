@@ -53,6 +53,7 @@ public class Ctrl_login extends HttpServlet {
 			request.getSession().setAttribute("id", id);
 			request.getSession().setAttribute("pw", pw);
 			
+			
 			response.getWriter().write("login success !");
 			break;
 		}
