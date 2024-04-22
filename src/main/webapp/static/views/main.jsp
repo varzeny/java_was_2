@@ -14,6 +14,7 @@
 <body>
 	<h1>메인화면</h1>
 	<P>여기는 메인화면으로, 모든 활동이 이루어 집니다.</P>
+	<a href="temp1.jsp">맵생성</a>
 	
 	<div class="div_main">
 		<div class="div_main_btn">

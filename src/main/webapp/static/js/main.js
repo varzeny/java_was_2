@@ -1,11 +1,13 @@
 
 var currentTab = "div_tab_3";
+var user;
+
 
 window.onload = function(){
 	document.getElementById(currentTab).style.display="block";
 	loadUser();
-	console.log("~~~");
 	
+	console.log("onload 종료!");
 }
 
 
@@ -26,7 +28,8 @@ async function loadUser(){
 		const ct = response.headers.get("content-type");
 		if( ct && ct.includes("application/json") ){
 			const data = await response.json();
-			console.log(data);			
+			console.log(data);
+			user = data;	
 		}else{
 			const text = await response.text();
 			console.log(text);

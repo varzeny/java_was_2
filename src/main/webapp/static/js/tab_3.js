@@ -3,11 +3,20 @@
 var canvas = document.getElementById("world_map");
 var ctx = canvas.getContext("2d");
 
-var img = new Image();
-img.onload = function(){
-	ctx.drawImage(img,500,400,500,400,0,0,800,600);
+
+
+var img1 = new Image();
+img1.src = "../img/dungeon.png";
+img1.onload = function(){
+	ctx.drawImage(img1,0,0,10,10);
 };
-img.src = "../img/world_map.jpg";
+
+
+var img2 = new Image();
+img2.src = "../img/castle.png";
+img2.onload = function(){
+	ctx.drawImage(img2,50,50,10,10);
+};
 
 
 
