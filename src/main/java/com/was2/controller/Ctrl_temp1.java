@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
+
 import com.was2.service.PerlinNoise;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.was2.model.Model_temp1;
@@ -41,7 +42,7 @@ public class Ctrl_temp1 extends HttpServlet {
 		System.out.printf("%d, %d, %d, %f, %d\n", data.row, data.col, data.octave, data.per, seed);
 		
 		PerlinNoise noise = new PerlinNoise();
-		float[][] noiseMap = noise.generatePerlinNoise(data.row, data.col, data.octave, data.per, seed);
+		float[][] noiseMap = noise.generateIsland(data.row, data.col, data.octave, data.per, seed);
 		
 		int[][] map = new int[data.row][data.col];
         for(int r=0; r<data.row; r++) {
@@ -51,7 +52,19 @@ public class Ctrl_temp1 extends HttpServlet {
         	}
         	System.out.println();
         }
-        
+	
+		
+		
+//		IslandMaker islandMaker = new IslandMaker();
+//		int[][] map = islandMaker.generate(data.row, data.col, data.octave, data.per);
+//	    for(int r=0; r<data.row; r++) {
+//	    	for(int c=0; c<data.col; c++) {
+//	    		System.out.printf("%4d",map[r][c]);
+//	    	}
+//	    	System.out.println();
+//	    }
+//		
+		
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write( mapper.writeValueAsString(map) );

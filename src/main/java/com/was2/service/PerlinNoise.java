@@ -1,168 +1,125 @@
 package com.was2.service;
 
-
 import java.util.Random;
 
-import javax.sql.rowset.JoinRowSet;
- 
 /**
- * For detailed info and implementation see: <a href="http://devmag.org.za/2009/04/25/perlin-noise/">Perlin-Noise</a>
+ * This class provides methods to generate Perlin noise-based terrain, including island shapes
+ * with higher elevations at the center and lower at the edges.
  */
 public class PerlinNoise {
     /**
-     * @param width       width of noise array
-     * @param height      height of noise array
-     * @param octaveCount numbers of layers used for blending noise
-     * @param persistence value of impact each layer get while blending
-     * @param seed        used for randomizer
-     * @return float array containing calculated "Perlin-Noise" values
+     * Generates Perlin noise-based terrain with an island shape.
+     * 
+     * @param col       the col of the noise array
+     * @param row      the row of the noise array
+     * @param octaveCount the number of layers used for blending noise
+     * @param persistence the impact each layer has while blending
+     * @param seed        the seed used for randomization
+     * @return a float array containing calculated Perlin noise values shaped like an island
      */
-    public float[][] generatePerlinNoise(int width, int height, int octaveCount, float persistence, long seed) {
-        final float[][] base = new float[width][height];
-        final float[][] perlinNoise = new float[width][height];
-        final float[][][] noiseLayers = new float[octaveCount][][];
- 
+    public float[][] generateIsland(int col, int row, int octaveCount, float persistence, long seed) {
+        float[][] baseNoise = generateWhiteNoise(col, row, seed);
+        float[][] perlinNoise = generatePerlinNoise(baseNoise, col, row, octaveCount, persistence);
+        return createIslandShape(perlinNoise, col, row);
+    }
+
+    private float[][] generateWhiteNoise(int col, int row, long seed) {
         Random random = new Random(seed);
-        //fill base array with random values as base for noise
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                base[x][y] = random.nextFloat();
+        float[][] whiteNoise = new float[col][row];
+        for (int i = 0; i < col; i++) {
+            for (int j = 0; j < row; j++) {
+                whiteNoise[i][j] = random.nextFloat();
             }
         }
- 
-        //calculate octaves with different roughness
-        for (int octave = 0; octave < octaveCount; octave++) {
-            noiseLayers[octave] = generatePerlinNoiseLayer(base, width, height, octave);
+        return whiteNoise;
+    }
+
+    private float[][] generatePerlinNoise(float[][] baseNoise, int col, int row, int octaveCount, float persistence) {
+        float[][][] smoothNoise = new float[octaveCount][][];
+        float amplitude = 1.0f;
+        float totalAmplitude = 0.0f;
+
+        // Generate smooth noise
+        for (int i = 0; i < octaveCount; i++) {
+            smoothNoise[i] = generateSmoothNoise(baseNoise, col, row, i);
+            totalAmplitude += amplitude;
+            amplitude *= persistence;
         }
- 
-        float amplitude = 1f;
-        float totalAmplitude = 0f;
- 
-        //calculate perlin noise by blending each layer together with specific persistence
+
+        float[][] perlinNoise = new float[col][row];
+        amplitude = 1.0f;
+
+        // Blend noise together
         for (int octave = octaveCount - 1; octave >= 0; octave--) {
             amplitude *= persistence;
-            totalAmplitude += amplitude;
- 
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    //adding each value of the noise layer to the noise
-                    //by increasing amplitude the rougher noises will have more impact
-                    perlinNoise[x][y] += noiseLayers[octave][x][y] * amplitude;
+            for (int i = 0; i < col; i++) {
+                for (int j = 0; j < row; j++) {
+                    perlinNoise[i][j] += smoothNoise[octave][i][j] * amplitude;
                 }
             }
         }
- 
-        //normalize values so that they stay between 0..1
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                perlinNoise[x][y] /= totalAmplitude;
+
+        // Normalisation
+        for (int i = 0; i < col; i++) {
+            for (int j = 0; j < row; j++) {
+                perlinNoise[i][j] /= totalAmplitude;
             }
         }
- 
+
         return perlinNoise;
     }
- 
-    /**
-     * @param base   base random float array
-     * @param width  width of noise array
-     * @param height height of noise array
-     * @param octave current layer
-     * @return float array containing calculated "Perlin-Noise-Layer" values
-     */
-    public float[][] generatePerlinNoiseLayer(float[][] base, int width, int height, int octave) {
-        float[][] perlinNoiseLayer = new float[width][height];
- 
-        //calculate period (wavelength) for different shapes
-        int period = 1 << octave; //2^k
-        float frequency = 1f / period; // 1/2^k
- 
-        for (int x = 0; x < width; x++) {
-            //calculates the horizontal sampling indices
-            int x0 = (x / period) * period;
-            int x1 = (x0 + period) % width;
-            float horizintalBlend = (x - x0) * frequency;
- 
-            for (int y = 0; y < height; y++) {
-                //calculates the vertical sampling indices
-                int y0 = (y / period) * period;
-                int y1 = (y0 + period) % height;
-                float verticalBlend = (y - y0) * frequency;
- 
-                //blend top corners
-                float top = interpolate(base[x0][y0], base[x1][y0], horizintalBlend);
- 
-                //blend bottom corners
-                float bottom = interpolate(base[x0][y1], base[x1][y1], horizintalBlend);
- 
-                //blend top and bottom interpolation to get the final blend value for this cell
-                perlinNoiseLayer[x][y] = interpolate(top, bottom, verticalBlend);
+
+    private float[][] generateSmoothNoise(float[][] baseNoise, int col, int row, int octave) {
+        int samplePeriod = 1 << octave; // calculates 2 ^ k
+        float sampleFrequency = 1.0f / samplePeriod;
+        float[][] smoothNoise = new float[col][row];
+
+        for (int i = 0; i < col; i++) {
+            int sample_i0 = (i / samplePeriod) * samplePeriod;
+            int sample_i1 = (sample_i0 + samplePeriod) % col; // wrap around
+            float horizontal_blend = (i - sample_i0) * sampleFrequency;
+
+            for (int j = 0; j < row; j++) {
+                int sample_j0 = (j / samplePeriod) * samplePeriod;
+                int sample_j1 = (sample_j0 + samplePeriod) % row; // wrap around
+                float vertical_blend = (j - sample_j0) * sampleFrequency;
+
+                float top = interpolate(baseNoise[sample_i0][sample_j0], baseNoise[sample_i1][sample_j0], horizontal_blend);
+                float bottom = interpolate(baseNoise[sample_i0][sample_j1], baseNoise[sample_i1][sample_j1], horizontal_blend);
+
+                smoothNoise[i][j] = interpolate(top, bottom, vertical_blend);
             }
         }
- 
-        return perlinNoiseLayer;
+
+        return smoothNoise;
     }
- 
-    /**
-     * @param a     value of point a
-     * @param b     value of point b
-     * @param alpha determine which value has more impact (closer to 0 -> a, closer to 1 -> b)
-     * @return interpolated value
-     */
-    public float interpolate(float a, float b, float alpha) {
-        return a * (1 - alpha) + alpha * b;
+
+    
+    private float[][] createIslandShape(float[][] perlinNoise, int col, int row) {
+        float[][] islandMap = new float[col][row];
+        float centerX = col / 2f;
+        float centerY = row / 2f;
+        float maxDistance = Math.min(centerX, centerY);
+
+        for (int x = 0; x < col; x++) {
+            for (int y = 0; y < row; y++) {
+                float distance = (float) Math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+                float distanceFactor = 1 - (distance / maxDistance);
+
+                // Apply a smoother radial gradient
+                float rowFactor = (float) Math.pow(distanceFactor, 0.5f); // 부드러운 경사
+                islandMap[x][y] = perlinNoise[x][y] * rowFactor;
+
+                // Optionally, add a row cap to reduce peak row
+                islandMap[x][y] = Math.min(islandMap[x][y], 0.8f); // 최대 높이 제한
+            }
+        }
+
+        return islandMap;
     }
- 
-//    public static void main(String[] args) {
-//    	Random random = new Random();
-// 
-//        final int width = 100;
-//        final int height = 100;
-//        final int octaveCount =4;
-//        final float persistence = 0.5f;
-//        final long seed = random.nextInt(999999999);
-////        final String charset = "0123456789";
-//        final float[][] perlinNoise;
-// 
-//
-// 
-// 
-//        perlinNoise = generatePerlinNoise(width, height, octaveCount, persistence, seed);
-//        
-//        int[][] map = new int[width][height];
-//        
-//        for(int r=0;r<width;r++) {
-//        	for(int c=0; c<height; c++) {
-//        		map[r][c] = (int)(perlinNoise[r][c]*255);
-//        	}
-//        }
-//        
-//        for(int r=0;r<width;r++) {
-//        	for(int c=0; c<height; c++) {
-//        		System.out.printf("%3d ",map[r][c]);
-//        	}
-//        	System.out.println();
-//        }
-//        
-//        
-////        final char[] chars = charset.toCharArray();
-////        final int length = chars.length;
-////        final float step = 1f / length;
-////        //output based on charset
-////        for (int x = 0; x < width; x++) {
-////            for (int y = 0; y < height; y++) {
-////                float value = step;
-////                float noiseValue = perlinNoise[x][y];
-//// 
-////                for (char c : chars) {
-////                    if (noiseValue <= value) {
-////                        System.out.print(c);
-////                        break;
-////                    }
-////                    value += step;
-////                }
-////            }
-////            System.out.println();
-////        }
-//
-//    }
+    
+
+    private float interpolate(float a, float b, float blend) {
+        return a * (1 - blend) + b * blend;
+    }
 }

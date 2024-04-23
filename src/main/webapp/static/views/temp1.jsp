@@ -55,7 +55,9 @@
 		            for(let i = 0; i < row; i++) {
 		                for(let j = 0; j < col; j++) {
 		                	let color;
-		                	if(data[i][j] < 100){ ctx.fillStyle = "rgb(0,0,255)"; ctx.fillRect(j*10, i*10, 10, 10); continue;}
+		                	if(data[i][j] < 30){ ctx.fillStyle = "rgb(0,0,255)"; ctx.fillRect(j*10, i*10, 10, 10); continue;}
+		                	if(data[i][j] < 50){ ctx.fillStyle = "rgb(0,255,0)"; ctx.fillRect(j*10, i*10, 10, 10); continue;}
+
 		                	color = data[i][j];
 		                	// console.log(data[i][j]);
 		                    ctx.fillStyle = "rgb("+color+","+color+","+color+")";
