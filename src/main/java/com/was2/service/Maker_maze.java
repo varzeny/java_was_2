@@ -3,12 +3,12 @@ package com.was2.service;
 import java.util.*;
 
 
-public class MazeMaker {
+public class Maker_maze {
 	int row;
 	int col;
 	int[][] maze;
 	
-	public MazeMaker(int row, int col) {
+	public Maker_maze(int row, int col) {
 		this.row = row;
 		this.col = col;
 		maze = new int[this.row][this.col];
@@ -120,7 +120,7 @@ public class MazeMaker {
 	
 	
 	public static void main(String[] args) {
-		MazeMaker maze = new MazeMaker(10,10);
+		Maker_maze maze = new Maker_maze(10,10);
 		maze.makeMaze();
 		maze.showPic();
 
